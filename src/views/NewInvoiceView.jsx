@@ -13,12 +13,14 @@ const emptyClient = {
   address: '',
   location: '',
   seller: '',
+  orderNumber: '',
 };
 
 export function NewInvoiceView() {
   const { state, dispatch } = useApp();
   const [clientForm, setClientForm] = useState(emptyClient);
   const [orderItems, setOrderItems] = useState([]);
+  const [includeIVA, setIncludeIVA] = useState(false);
   const [showSetSelector, setShowSetSelector] = useState(false);
   const [showSetBuilder, setShowSetBuilder] = useState(false);
 
@@ -53,13 +55,15 @@ export function NewInvoiceView() {
       date: new Date().toISOString(),
       client: clientForm,
       items: orderItems,
+      includeIVA,
     };
 
     dispatch({ type: 'ADD_INVOICE', payload: invoice });
     setClientForm(emptyClient);
     setOrderItems([]);
+    setIncludeIVA(false);
     alert('✅ Factura guardada exitosamente');
-  }, [clientForm, orderItems, dispatch]);
+  }, [clientForm, orderItems, includeIVA, dispatch]);
 
   const handleAddSetFromBuilder = useCallback(
     (set) => {
@@ -80,6 +84,8 @@ export function NewInvoiceView() {
         setOrderItems={setOrderItems}
         onSaveInvoice={saveInvoice}
         onOpenSetClick={() => setShowSetSelector(true)}
+        includeIVA={includeIVA}
+        setIncludeIVA={setIncludeIVA}
       />
 
       <SetSelectorModal

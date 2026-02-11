@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Package, Plus, Trash2 } from 'lucide-react';
+import { Package, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ProductCatalogModal } from '../components/ProductCatalogModal';
 
 export function CatalogView() {
   const { state, dispatch } = useApp();
   const [showProductModal, setShowProductModal] = useState(false);
+  const [productToEdit, setProductToEdit] = useState(null);
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
@@ -57,18 +58,31 @@ export function CatalogView() {
                       </p>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`¿Eliminar "${product.name}"?`)) {
-                        dispatch({ type: 'DELETE_PRODUCT', payload: product.id });
-                      }
-                    }}
-                    className="shrink-0 p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-                    aria-label={`Eliminar ${product.name}`}
-                  >
-                    <Trash2 size={16} strokeWidth={2} />
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProductToEdit(product);
+                        setShowProductModal(true);
+                      }}
+                      className="shrink-0 p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+                      aria-label={`Editar ${product.name}`}
+                    >
+                      <Edit2 size={16} strokeWidth={2} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`¿Eliminar "${product.name}"?`)) {
+                          dispatch({ type: 'DELETE_PRODUCT', payload: product.id });
+                        }
+                      }}
+                      className="shrink-0 p-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                      aria-label={`Eliminar ${product.name}`}
+                    >
+                      <Trash2 size={16} strokeWidth={2} />
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div>
@@ -106,8 +120,16 @@ export function CatalogView() {
 
       <ProductCatalogModal
         isOpen={showProductModal}
-        onClose={() => setShowProductModal(false)}
+        onClose={() => {
+          setShowProductModal(false);
+          setProductToEdit(null);
+        }}
+        productToEdit={productToEdit}
         onAdd={(product) => dispatch({ type: 'ADD_PRODUCT', payload: product })}
+        onUpdate={(product) => {
+          dispatch({ type: 'UPDATE_PRODUCT', payload: product });
+          setProductToEdit(null);
+        }}
       />
     </div>
   );

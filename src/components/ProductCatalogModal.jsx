@@ -1,36 +1,54 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
 
-const CATEGORIES = ['Mesa', 'Silla', 'Puff', 'Sofá', 'Butaco'];
+const CATEGORIES = ['pvc','Cr15','Cr25','Triplex','TablonPino','Acero', 'Metal', 'Puff', 'Sofá', 'Butaco','Plastico','tapizado'];
 const fieldClass =
   'w-full px-3.5 py-2.5 rounded-lg border border-stone-200 bg-white text-stone-800 placeholder-stone-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm';
 
-export function ProductCatalogModal({ isOpen, onClose, onAdd }) {
+export function ProductCatalogModal({ isOpen, onClose, onAdd, onUpdate, productToEdit }) {
   const [formData, setFormData] = useState({
     name: '',
-    category: 'Mesa',
+    category: 'pvc',
     sizes: '',
     colors: '',
     price: '',
   });
 
+  React.useEffect(() => {
+    if (productToEdit) {
+      setFormData({
+        name: productToEdit.name || '',
+        category: productToEdit.category || 'pvc',
+        sizes: (productToEdit.sizes || []).join(', '),
+        colors: (productToEdit.colors || []).join(', '),
+        price: productToEdit.price || '',
+      });
+    } else {
+      setFormData({ name: '', category: 'pvc', sizes: '', colors: '', price: '' });
+    }
+  }, [productToEdit, isOpen]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newProduct = {
-      id: Date.now().toString(),
+    const productData = {
       name: formData.name,
       category: formData.category,
       sizes: formData.sizes.split(',').map((s) => s.trim()).filter(Boolean),
       colors: formData.colors.split(',').map((c) => c.trim()).filter(Boolean),
       price: Number(formData.price) || 0,
     };
-    onAdd(newProduct);
-    setFormData({ name: '', category: 'Mesa', sizes: '', colors: '', price: '' });
+
+    if (productToEdit) {
+      onUpdate({ ...productData, id: productToEdit.id });
+    } else {
+      onAdd({ ...productData, id: Date.now().toString() });
+    }
+    setFormData({ name: '', category: 'pvc', sizes: '', colors: '', price: '' });
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Agregar producto al catálogo">
+    <Modal isOpen={isOpen} onClose={onClose} title={productToEdit ? "Editar producto" : "Agregar producto al catálogo"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-stone-700 mb-1.5">Nombre del producto</label>
@@ -93,7 +111,7 @@ export function ProductCatalogModal({ isOpen, onClose, onAdd }) {
           type="submit"
           className="w-full py-3 rounded-xl bg-amber-600 text-white font-medium hover:bg-amber-700 transition-colors shadow-sm"
         >
-          Agregar producto
+          {productToEdit ? 'Guardar cambios' : 'Agregar producto'}
         </button>
       </form>
     </Modal>

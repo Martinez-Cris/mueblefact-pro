@@ -99,6 +99,17 @@ export function ClientForm({ clientForm, setClientForm }) {
             placeholder="Nombre del vendedor"
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-stone-700 mb-1.5">Número de orden</label>
+          <input
+            type="text"
+            value={clientForm.orderNumber || ''}
+            onChange={(e) => setClientForm({ ...clientForm, orderNumber: e.target.value })}
+            className={fieldClass}
+            placeholder="Ej: ORD-2024-001"
+          />
+        </div>
       </div>
     </div>
   );

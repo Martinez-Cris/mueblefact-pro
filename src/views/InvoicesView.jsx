@@ -1,7 +1,8 @@
 import React from 'react';
-import { FileText, Download, Trash2 } from 'lucide-react';
+import { FileText, Download, Trash2, FileDown, FileType } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { generateCSV, downloadCSV } from '../utils/csv';
+import { generateCSV, generateConsolidatedCSV, downloadCSV } from '../utils/csv';
+import { downloadInvoicePdf } from '../utils/invoicePdf';
 
 export function InvoicesView() {
   const { state, dispatch } = useApp();
@@ -12,17 +13,44 @@ export function InvoicesView() {
     downloadCSV(csv, fileName);
   };
 
+  const exportConsolidatedCSV = () => {
+    if (state.invoices.length === 0) {
+      alert('No hay facturas para exportar');
+      return;
+    }
+    const csv = generateConsolidatedCSV(state.invoices, state.products);
+    const fileName = `ordenes_produccion_consolidado_${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSV(csv, fileName);
+  };
+
+  const downloadPdf = (invoice) => {
+    const fileName = `factura_${(invoice.client?.name || 'cliente').replace(/\s/g, '_')}_${new Date(invoice.date).toISOString().split('T')[0]}.pdf`;
+    downloadInvoicePdf(invoice, state.products, fileName);
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-stone-100 bg-stone-50/50">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-100 text-amber-700">
-            <FileText size={20} strokeWidth={2} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-100 text-amber-700">
+              <FileText size={20} strokeWidth={2} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-stone-800">Facturas generadas</h2>
+              <p className="text-xs text-stone-500">Exporta a CSV o elimina facturas</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-stone-800">Facturas generadas</h2>
-            <p className="text-xs text-stone-500">Exporta a CSV o elimina facturas</p>
-          </div>
+          {state.invoices.length > 0 && (
+            <button
+              type="button"
+              onClick={exportConsolidatedCSV}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 transition-colors shadow-sm"
+            >
+              <FileDown size={18} strokeWidth={2} />
+              Exportar CSV consolidado
+            </button>
+          )}
         </div>
       </div>
 
@@ -70,7 +98,16 @@ export function InvoicesView() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-1.5 justify-end">
+                      <div className="flex flex-wrap gap-1.5 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => downloadPdf(invoice)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-medium hover:bg-amber-700 transition-colors"
+                          title="Descargar PDF para el cliente"
+                        >
+                          <FileType size={14} strokeWidth={2} />
+                          PDF
+                        </button>
                         <button
                           type="button"
                           onClick={() => exportToCSV(invoice)}

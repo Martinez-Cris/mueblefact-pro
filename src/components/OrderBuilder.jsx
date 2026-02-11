@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Plus, Trash2, Save, Package, Layers } from 'lucide-react';
 
 const inputClass =
@@ -12,6 +12,8 @@ export function OrderBuilder({
   setOrderItems,
   onSaveInvoice,
   onOpenSetClick,
+  includeIVA,
+  setIncludeIVA,
 }) {
   const addProductToOrder = () => {
     setOrderItems((prev) => [
@@ -37,6 +39,18 @@ export function OrderBuilder({
   const removeOrderItem = (id) => {
     setOrderItems((prev) => prev.filter((item) => item.id !== id));
   };
+
+  // Calcular totales
+  const totals = useMemo(() => {
+    const subtotal = orderItems.reduce((sum, item) => {
+      const price = item.unitPrice ?? 0;
+      const qty = item.quantity ?? 1;
+      return sum + price * qty;
+    }, 0);
+    const iva = includeIVA ? subtotal * 0.19 : 0;
+    const total = subtotal + iva;
+    return { subtotal, iva, total };
+  }, [orderItems, includeIVA]);
 
   return (
     <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex flex-col">
@@ -251,14 +265,46 @@ export function OrderBuilder({
         </div>
 
         {orderItems.length > 0 && (
-          <button
-            type="button"
-            onClick={onSaveInvoice}
-            className="mt-5 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-sm"
-          >
-            <Save size={20} strokeWidth={2} />
-            Guardar factura
-          </button>
+          <>
+            <div className="mt-5 pt-5 border-t border-stone-200 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-stone-600">Subtotal:</span>
+                <span className="font-semibold text-stone-800">
+                  ${totals.subtotal.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includeIVA}
+                    onChange={(e) => setIncludeIVA(e.target.checked)}
+                    className="w-4 h-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500 focus:ring-2"
+                  />
+                  <span className="text-sm text-stone-700">IVA (19%)</span>
+                </label>
+                {includeIVA && (
+                  <span className="ml-auto text-sm font-semibold text-stone-800">
+                    ${totals.iva.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                )}
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-stone-200">
+                <span className="font-semibold text-stone-800">Total:</span>
+                <span className="text-lg font-bold text-amber-700">
+                  ${totals.total.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onSaveInvoice}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-sm"
+            >
+              <Save size={20} strokeWidth={2} />
+              Guardar factura
+            </button>
+          </>
         )}
       </div>
     </div>

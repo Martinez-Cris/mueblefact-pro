@@ -26,6 +26,13 @@ function appReducer(state, action) {
   switch (action.type) {
     case 'ADD_PRODUCT':
       return { ...state, products: [...state.products, action.payload] };
+    case 'UPDATE_PRODUCT':
+      return {
+        ...state,
+        products: state.products.map((p) =>
+          p.id === action.payload.id ? { ...p, ...action.payload } : p
+        ),
+      };
     case 'DELETE_PRODUCT':
       return { ...state, products: state.products.filter((p) => p.id !== action.payload) };
     case 'ADD_INVOICE':
